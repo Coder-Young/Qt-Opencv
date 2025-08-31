@@ -43,6 +43,7 @@ private slots:
     void updateFPS(float);
     void recordingStartStop();
     void appendSavedVideo(QString name);
+    void updateMonitorStatus(int status);
 
 private:
     Ui::MainWindow *ui;

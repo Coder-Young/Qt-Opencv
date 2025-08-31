@@ -33,6 +33,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(recordBtn, SIGNAL(clicked(bool)),
             this, SLOT(recordingStartStop()));
+
+    connect(monitorCheckBox, SIGNAL(stateChanged(int)),
+            this, SLOT(updateMonitorStatus(int)));
 }
 
 MainWindow::~MainWindow()
@@ -123,6 +126,8 @@ void MainWindow::openCamera()
             this, &MainWindow::appendSavedVideo);
     capturer->start();
 
+    monitorCheckBox->setCheckState(Qt::Unchecked);
+    recordBtn->setEnabled(true);
     this->mainStatusLabel->setText(QString("Capturing Camera %1").arg(camID));
 }
 
@@ -202,6 +207,21 @@ void MainWindow::populateSavedList()
 
     foreach(QFileInfo cover, videoCovers)
     {
-        appendSavedVideo(cover.fileName());
+        appendSavedVideo(cover.baseName());
+    }
+}
+
+void MainWindow::updateMonitorStatus(int status)
+{
+    if(capturer == nullptr) {
+        return;
+    }
+
+    if(status) {
+        capturer->setMotionDetectingStatus(true);
+        recordBtn->setEnabled(false);
+    } else {
+        capturer->setMotionDetectingStatus(false);
+        recordBtn->setEnabled(true);
     }
 }

@@ -26,12 +26,20 @@ public:
 
     void setRunning(bool run) { running = run; }
     void startCalcFPS(bool calculate) { fps_calculating = calculate; }
-    void setVideoSavingStatus(VideoSavingStatus status) {video_saving_status = status; };
+    void setVideoSavingStatus(VideoSavingStatus status) {video_saving_status = status; }
+    void setMotionDetectingStatus(bool status)
+    {
+        motion_detecting_status = status;
+        motion_detected = false;
+        if (video_saving_status != STOPPED)
+            video_saving_status = STOPPING;
+    }
 
 private:
     void calculateFPS(cv::VideoCapture &cap);
     void startSavingVideo(cv::Mat &firstFrame);
     void stopSavingVideo();
+    void motionDetect(cv::Mat &frame);
 
 protected:
     void run() override;
@@ -57,5 +65,10 @@ private: //保存视频
     VideoSavingStatus video_saving_status;
     QString saved_video_name;
     cv::VideoWriter *video_writer;
+
+private: //运动检测
+    bool motion_detecting_status;
+    bool motion_detected;
+    cv::Ptr<cv::BackgroundSubtractorMOG2> segmentor;
 };
 #endif // CAPTURETHREAD_H
