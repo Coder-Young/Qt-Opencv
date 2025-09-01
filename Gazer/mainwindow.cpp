@@ -183,13 +183,21 @@ void MainWindow::recordingStartStop()
 
 void MainWindow::appendSavedVideo(QString name)
 {
-    QString cover = Utilities::getSavedVideoPath(name, "jpg");
+    QString coverPath = Utilities::getSavedVideoPath(name, "jpg");
+    QPixmap pixmap;
+    bool loaded = pixmap.load(coverPath);
+    if (!loaded)
+    {
+        qDebug() << "video cover lost";
+        return;
+    }
 
     QStandardItem *item = new QStandardItem();
+    item->setEditable(false);
     list_model->appendRow(item);
 
     QModelIndex index = list_model->indexFromItem(item);
-    list_model->setData(index, QPixmap(cover).scaledToHeight(145), Qt::DecorationRole);
+    list_model->setData(index, QPixmap(coverPath).scaledToHeight(145), Qt::DecorationRole);
     list_model->setData(index, name, Qt::DisplayRole);
     saved_list->scrollTo(index);
 }

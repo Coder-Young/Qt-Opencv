@@ -4,6 +4,7 @@
 #include <QDir>
 #include <QStandardPaths>
 #include <QDateTime>
+#include <QtGlobal>
 
 QString Utilities::getDataPath()
 {
@@ -16,10 +17,16 @@ QString Utilities::getDataPath()
 QString Utilities::newSavedVideoName()
 {
     QDateTime time = QDateTime::currentDateTime();
-    return time.toString("yyyy-MM-dd_HH:mm:ss");
+    return time.toString("yyyy-MM-dd HH-mm-ss"); // HH:mm:ss改为HH-mm-ss，文件名中不允许:符号
 }
 
 QString Utilities::getSavedVideoPath(QString name, QString postfix)
 {
-    return QString("%1/%2.%3").arg(Utilities::getDataPath(), name, postfix);
+    QString finalPath = QString("%1/%2.%3").arg(Utilities::getDataPath(), name, postfix);
+
+#ifdef Q_OS_WIN
+    finalPath = finalPath.replace("/", "\\");
+#endif
+
+    return finalPath;
 }

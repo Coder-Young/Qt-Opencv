@@ -6,6 +6,7 @@
 #include <QTime>
 #include <QFile>
 #include <vector>
+#include <string>
 
 CaptureThread::CaptureThread(int camera, QMutex *lock):
     running(false), cameraID(camera), videoPath(""), data_lock(lock), fps_calculating(false), fps(0.0f)
@@ -63,6 +64,7 @@ void CaptureThread::run() {
         case STOPPING:
             stopSavingVideo();
             break;
+        case STOPPED:
         default:
             break;
         }
@@ -106,14 +108,25 @@ void CaptureThread::startSavingVideo(cv::Mat &firstFrame)
 {
     saved_video_name = Utilities::newSavedVideoName();
 
-    QString cover = Utilities::getSavedVideoPath(saved_video_name, "jpg");
-    cv::imwrite(cover.toStdString(), firstFrame);
+    QString coverPath = Utilities::getSavedVideoPath(saved_video_name, "jpg");
+    bool writed = cv::imwrite(coverPath.toStdString(), firstFrame);
+    if (!writed)
+    {
+        qDebug() << "imwrite fail";
+    }
 
+    QString videoPath = Utilities::getSavedVideoPath(saved_video_name, "avi");
     video_writer = new cv::VideoWriter(
-                Utilities::getSavedVideoPath(saved_video_name, "avi").toStdString(),
+                videoPath.toStdString(),
                 cv::VideoWriter::fourcc('M', 'J', 'P', 'G'),
                 fps ? fps : 30,
                 cv::Size(frame_width, frame_height));
+    if (!video_writer->isOpened())
+    {
+        video_saving_status = STOPPED;
+        qDebug() << cv::getBuildInformation().c_str();
+        return;
+    }
 
     video_saving_status = STARTED;
 }
