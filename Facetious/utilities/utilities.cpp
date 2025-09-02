@@ -17,7 +17,7 @@ QString Utilities::getDataPath()
 QString Utilities::newSavedPhotoName()
 {
     QDateTime time = QDateTime::currentDateTime();
-    return time.toString("yyyy-MM-dd_HH:mm:ss");
+    return time.toString("yyyy-MM-dd HH-mm-ss");
 }
 
 QString Utilities::getSavedPhotoPath(QString name, QString postfix)

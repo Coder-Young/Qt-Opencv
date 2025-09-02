@@ -13,17 +13,18 @@ CONFIG += c++11
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += OPENCV_DATA_DIR=\\\"D:/OpenCV/opencv480/opencv480_cmake_build1/install/etc/\\\"
 
 # You can also make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-INCLUDEPATH += D:\OpenCV\opencv480\opencv480_cmake_build\install\include \
-                D:\OpenCV\opencv480\opencv480_cmake_build\install\include\opencv \
-                D:\OpenCV\opencv480\opencv480_cmake_build\install\include\opencv2
+INCLUDEPATH += D:\OpenCV\opencv480\opencv480_cmake_build1\install\include \
+                D:\OpenCV\opencv480\opencv480_cmake_build1\install\include\opencv \
+                D:\OpenCV\opencv480\opencv480_cmake_build1\install\include\opencv2
 
-LIBS += D:\OpenCV\opencv480\opencv480_cmake_build\install\x64\mingw\bin\libopencv_*.dll
+LIBS += D:\OpenCV\opencv480\opencv480_cmake_build1\install\x64\mingw\bin\libopencv_*.dll
 
 SOURCES += \
     capturethread.cpp \

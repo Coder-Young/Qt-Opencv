@@ -40,6 +40,7 @@ private slots:
     void openCamera();
     void updateFrame(cv::Mat*);
     void appendSavedPhoto(QString name);
+    void takePhoto();
 
 private:
     Ui::MainWindow *ui;

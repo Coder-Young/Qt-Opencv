@@ -26,6 +26,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(ui->actionOpen_Camera, SIGNAL(triggered(bool)),
             this, SLOT(openCamera()));
+
+    connect(shutterBtn, SIGNAL(clicked(bool)),
+            this, SLOT(takePhoto()));
 }
 
 MainWindow::~MainWindow()
@@ -51,7 +54,6 @@ void MainWindow::initUI()
     shutterBtn = new QPushButton(this);
     shutterBtn->setText("Take photo");
     tool_layout->addWidget(shutterBtn, 0, 0, Qt::AlignHCenter);
-    tool_layout->addWidget(new QLabel(this), 0, 2);
 
     // list of saved videos
     saved_list = new QListView(this);
@@ -92,6 +94,8 @@ void MainWindow::openCamera()
         capturer->setRunning(false);
         disconnect(capturer, &CaptureThread::frameCaptured,
                    this, &MainWindow::updateFrame);
+        disconnect(capturer, &CaptureThread::photoTaken,
+                   this, &MainWindow::appendSavedPhoto);
         //connect(capturer, SIGNAL(finished()),
          //       capturer, &CaptureThread::deleter);
     }
@@ -102,6 +106,8 @@ void MainWindow::openCamera()
     capturer = new CaptureThread(camID, data_lock);
     connect(capturer, &CaptureThread::frameCaptured,
             this, &MainWindow::updateFrame);
+    connect(capturer, &CaptureThread::photoTaken,
+            this, &MainWindow::appendSavedPhoto);
     capturer->start();
     this->mainStatusLabel->setText(QString("Capturing Camera %1").arg(camID));
 }
@@ -141,11 +147,24 @@ void MainWindow::populateSavedList()
 
     foreach(QFileInfo cover, videoCovers)
     {
-
+        appendSavedPhoto(cover.baseName());
     }
 }
 
 void MainWindow::appendSavedPhoto(QString name)
 {
+    QString photo_path = Utilities::getSavedPhotoPath(name, "jpg");
+    QStandardItem *item = new QStandardItem();
+    list_model->appendRow(item);
 
+    QModelIndex index = list_model->indexFromItem(item);
+    list_model->setData(index, QPixmap(photo_path).scaledToHeight(145), Qt::DecorationRole);
+    list_model->setData(index, name, Qt::DisplayRole);
+    saved_list->scrollTo(index);
+}
+
+void MainWindow::takePhoto()
+{
+    if (capturer != nullptr)
+        capturer->takePhoto();
 }
