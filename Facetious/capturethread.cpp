@@ -5,22 +5,46 @@
 #include <QDebug>
 #include <QTime>
 #include <QFile>
-#include <vector>
+#include <QImage>
 #include <QApplication>
 
 CaptureThread::CaptureThread(int camera, QMutex *lock):
     running(false), cameraID(camera), videoPath(""), data_lock(lock), taking_photo(false)
 {
     frame_width = frame_height = 0;
+    loadOrnaments();
 }
 
 CaptureThread::CaptureThread(QString videoPath, QMutex *lock):
     running(false), cameraID(-1), videoPath(videoPath), data_lock(lock), taking_photo(false)
 {
     frame_width = frame_height = 0;
+    loadOrnaments();
 }
 
 CaptureThread::~CaptureThread() {
+}
+
+void CaptureThread::loadOrnaments()
+{
+    QImage image;
+    image.load(":/images/glasses.jpg");
+    image = image.convertToFormat(QImage::Format_RGB888);
+    glasses = cv::Mat(
+                 image.height(), image.width(), CV_8UC3,
+                 image.bits(), image.bytesPerLine()).clone();
+
+    image.load(":images/mustache.jpg");
+    image = image.convertToFormat(QImage::Format_RGB888);
+    mustache = cv::Mat(
+        image.height(), image.width(), CV_8UC3,
+        image.bits(), image.bytesPerLine()).clone();
+
+    image.load(":images/mouse-nose.jpg");
+    image = image.convertToFormat(QImage::Format_RGB888);
+    mouse_nose = cv::Mat(
+        image.height(), image.width(), CV_8UC3,
+        image.bits(), image.bytesPerLine()).clone();
 }
 
 void CaptureThread::run() {
@@ -101,10 +125,37 @@ void CaptureThread::detectFaces(cv::Mat &frame)
             for(unsigned long k=0; k<shapes[i].size(); k++)
             {
                 //cv::circle(frame, shapes[i][k], 2, color, cv::FILLED);
-                QString index = QString("%1").arg(k);
-                cv::putText(frame, index.toStdString(), shapes[i][k],
-                            cv::FONT_HERSHEY_SIMPLEX, 0.4, color, 2);
+                //QString index = QString("%1").arg(k);
+                //cv::putText(frame, index.toStdString(), shapes[i][k],
+                //            cv::FONT_HERSHEY_SIMPLEX, 0.4, color, 2);
             }
+            drawGlasses(frame, shapes[i]);
         }
     }
+}
+
+void CaptureThread::drawGlasses(cv::Mat &frame, std::vector<cv::Point2f> &marks)
+{
+    if (glasses.empty())
+        return;
+
+    // 设置眼镜大小适配脸型
+    cv::Mat ornament;
+    double distance = cv::norm(marks[45] - marks[36]) * 1.5;
+    cv::resize(glasses, ornament, cv::Size(0, 0), distance / glasses.cols, distance / glasses.cols, cv::INTER_NEAREST);
+
+    // 旋转眼镜到适配脸型
+    double angle = -atan((marks[45].y - marks[36].y) / (marks[45].x - marks[36].x));
+    cv::Point2f center = cv::Point(ornament.cols/2, ornament.rows/2);
+    cv::Mat rotateMatrix = cv::getRotationMatrix2D(center, angle * 180 / 3.14, 1.0);
+
+    cv::Mat rotated;
+    cv::warpAffine(
+        ornament, rotated, rotateMatrix, ornament.size(),
+        cv::INTER_LINEAR, cv::BORDER_CONSTANT, cv::Scalar(255, 255, 255));
+
+    // paint
+    center = cv::Point((marks[45].x + marks[36].x) / 2, (marks[45].y + marks[36].y) / 2);
+    cv::Rect rec(center.x - rotated.cols / 2, center.y - rotated.rows / 2, rotated.cols, rotated.rows);
+    frame(rec) &= rotated;
 }

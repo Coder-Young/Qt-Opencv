@@ -4,6 +4,7 @@
 #include <QString>
 #include <QThread>
 #include <QMutex>
+#include <vector>
 
 #include "opencv2/opencv.hpp"
 #include "opencv2/objdetect.hpp"
@@ -30,6 +31,8 @@ signals:
 private:
     void takePhoto(cv::Mat &frame);
     void detectFaces(cv::Mat &frame);
+    void loadOrnaments();
+    void drawGlasses(cv::Mat &frame, std::vector<cv::Point2f> &marks);
 
 private: //播放视频
     bool running;
@@ -46,5 +49,10 @@ private:
 private:
     cv::CascadeClassifier *classifier;
     cv::Ptr<cv::face::Facemark> mark_detector;
+
+private:
+    cv::Mat glasses;
+    cv::Mat mustache;
+    cv::Mat mouse_nose;
 };
 #endif // CAPTURETHREAD_H
